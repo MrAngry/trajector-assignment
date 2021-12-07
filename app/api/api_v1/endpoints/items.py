@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Dict
 
 import requests
 from fastapi import APIRouter, Query
@@ -21,7 +21,12 @@ def generate_thumbnail_path_and_url(fname: str, item_id: int):
     return f"{settings.UPLOADS_FOLDER}/{fname}", f'/static/user_uploads/{fname}'
 
 
-def extract_filename(r):
+def extract_filename(r) -> str:
+    """
+    Utility function to extract filename from response object
+    :param r: `Response`
+    :return: file name
+    """
     fname = ''
     if "Content-Disposition" in r.headers.keys():
         fname = re.findall("filename=(.+)", r.headers["Content-Disposition"])[0]
@@ -33,6 +38,12 @@ def extract_filename(r):
 
 
 async def download_thumbnail(src: str, item_id: int):
+    """
+    Utility function to download thumbnails and save them to disk
+    :param src: url of thumbnail
+    :param item_id: Item id to attach thumbnail
+    :return:
+    """
     for i in range(settings.DOWNLOAD_RETRIES):
         try:
             r = requests.get(src, timeout=settings.DOWNLOAD_TIMEOUT)
@@ -52,7 +63,7 @@ async def download_thumbnail(src: str, item_id: int):
 @router.get("/linked/{item_id}", response_model=List[ItemOut], status_code=200)
 async def linked_items_top_down(item_id: int):
     """
-    Enpoint to showcase top down traversal of linked list starting from any given element
+    Endpoint to showcase top down traversal of linked list starting from any given element
     :param item_id:
     :return:
     """
@@ -77,19 +88,24 @@ async def read_items(is_favorite: bool = None, tags: List[str] = Query(None)):
     return await serialize_tags(values)
 
 
-async def serialize_tags(values):
-    for val in values:
+async def serialize_tags(dict_items: List[Dict]):
+    """
+    Serializer to convert serialized `Tag` objects into a list of str. Modifies passed in list!
+    :param dict_items:
+    :return:
+    """
+    for entry in dict_items:
         tags = []
-        for t in val['tags']:
+        for t in entry['tags']:
             tags.append(t['name'])
-        val['tags'] = tags
-    return values
+        entry['tags'] = tags
+    return dict_items
 
 
 @router.get("/{itemd_id}", response_model=ItemOutWithTagsSerialized, status_code=200)
-async def read_item(item_id: int,):
+async def read_item(item_id: int, ):
     """
-    Retrieve item bu id.
+    Retrieve item by id.
     """
     item_dict = ItemOut.from_orm(await Item.get(pk=item_id).prefetch_related("tags")).dict()
     tags = []

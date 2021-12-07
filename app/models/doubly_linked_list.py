@@ -4,7 +4,11 @@ from tortoise.exceptions import DoesNotExist
 from models.item import Item
 
 
-class DoublyLinkedList():
+class DoublyLinkedList:
+    """
+    Class representing doubly linked list on the DB level
+    """
+
     def __init__(self, first_element_id: int = None):
         self.first_element_id = first_element_id
         self.items = []
@@ -54,6 +58,11 @@ class DoublyLinkedList():
         self.items = await Item.filter(pk__in=[entry['id'] for entry in result[1]]).prefetch_related("tags")
 
     async def add(self, item: Item):
+        """
+        Adds item to the list inspects the item.previous_id and item.next_id to determine correct operation
+        :param item: `Item`
+        :return:
+        """
         if not item.previous_id and not item.next_id:
             await self.insert_first(item)
         elif item.previous_id:
@@ -62,6 +71,11 @@ class DoublyLinkedList():
             await self.insert_before(item)
 
     async def insert_first(self, item: Item):
+        """
+        Inserts item at the beginning of the list
+        :param item: `Item`
+        :return:
+        """
         if self.first_item:
             item.next_id = self.first_item.id
             self.first_item.previous_id = item.id
@@ -69,6 +83,12 @@ class DoublyLinkedList():
         await item.save()
 
     async def insert_after(self, new_item: Item):
+        """
+        Inserts item after item specified in new_item.previous_id
+
+        :param new_item: `Item`
+        :return:
+        """
         previous_item = await Item.get(pk=new_item.previous_id).prefetch_related("next")
         next_item = previous_item.next
 
@@ -81,6 +101,11 @@ class DoublyLinkedList():
         return
 
     async def insert_before(self, new_item: Item):
+        """
+        Inserts item before item specified in new_item.next_id
+        :param new_item: `Item`
+        :return:
+        """
         next_item = await Item.get(pk=new_item.next_id).prefetch_related("previous")
         previous_item = next_item.previous
 
@@ -93,6 +118,11 @@ class DoublyLinkedList():
         return
 
     async def remove_item(self, item: Item):
+        """
+        Removes item from the list but does not delete the item itself from DB
+        :param item: `Item`
+        :return:
+        """
         next_item = item.next
         previous_item = item.previous
 

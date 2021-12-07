@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, Field, validator, root_validator
+from pydantic import AnyHttpUrl, Field
 from pydantic.main import BaseModel
 from tortoise import Tortoise
 from tortoise.contrib.pydantic import pydantic_model_creator
