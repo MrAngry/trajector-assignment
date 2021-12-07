@@ -12,6 +12,9 @@ class DoublyLinkedList():
         self.first_item = None
 
     async def init(self):
+        """
+         Initialize linked list by loading first element
+        """
         try:
             if self.first_element_id is None:
                 self.first_item = (await Item.get(previous=None))
@@ -22,13 +25,14 @@ class DoublyLinkedList():
         self.initialized = True
 
     async def fetch(self):
-        # If no first element id was provided assume only single list exist
+        """
+        Utility function to allow fetching the whole linked list  in a single query from DB only available in postgreSQL
 
-        if self.first_element_id is None:
-            try:
-                self.first_element_id = (await Item.get(previous=None)).id
-            except DoesNotExist:
-                return
+        """
+
+        await self.init()
+        if not self.first_item:
+            return []
 
         query = f'''
             WITH RECURSIVE cte_query 
@@ -49,11 +53,7 @@ class DoublyLinkedList():
 
         self.items = await Item.filter(pk__in=[entry['id'] for entry in result[1]]).prefetch_related("tags")
 
-    def _do_sanity_check(self):
-        if not self.initialized:
-            raise Exception("Call fetch() method first!")
-
-    async def  add(self, item: Item):
+    async def add(self, item: Item):
         if not item.previous_id and not item.next_id:
             await self.insert_first(item)
         elif item.previous_id:
@@ -92,14 +92,11 @@ class DoublyLinkedList():
         await Item.bulk_update(objects=(previous_item, new_item, next_item), fields=('next_id', 'previous_id'))
         return
 
-    def move_item(self, item):
-        pass
-
     async def remove_item(self, item: Item):
         next_item = item.next
         previous_item = item.previous
 
-        # In other case DB will SET NULL for us
+        # In other cases DB will SET NULL for us
         if previous_item and next_item:
             previous_item.next = next_item
             next_item.previous = previous_item

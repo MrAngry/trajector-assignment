@@ -1,8 +1,6 @@
-import os
-from typing import Optional
-
-from tortoise import Model, fields, Tortoise, BaseDBAsyncClient
+from tortoise import Model, fields
 from tortoise.fields import SET_NULL, ForeignKeyNullableRelation
+
 from models.tag import Tag
 
 
@@ -28,8 +26,6 @@ class Item(Model):
     class PydanticMeta:
         exclude_raw_fields = False
 
-    # def delete(self, using_db: Optional[BaseDBAsyncClient] = None) -> None:
-    #     super(Item, self).delete(using_db)
-    #     os.unlink("")
+    # TODO override delete method to remove stale thumbnails
 
 

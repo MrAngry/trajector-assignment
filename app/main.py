@@ -1,3 +1,4 @@
+import uvicorn as uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
@@ -31,3 +32,6 @@ register_tortoise(
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 app.mount(settings.STATIC_URL, StaticFiles(directory="static"), name="static")
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=11080)

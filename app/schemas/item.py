@@ -1,7 +1,6 @@
 from typing import List, Optional
-from uuid import UUID
 
-from pydantic import AnyHttpUrl, Field, validator
+from pydantic import AnyHttpUrl, Field, validator, root_validator
 from pydantic.main import BaseModel
 from tortoise import Tortoise
 from tortoise.contrib.pydantic import pydantic_model_creator
@@ -10,6 +9,13 @@ from models.item import Item
 
 Tortoise.init_models(["models.item"], "models")
 ItemOut = pydantic_model_creator(Item, exclude=['next', 'previous'])
+
+item_schema_example = {
+    "url"      : "https://www.some.domain.com/product/1",
+    "thumbnail": "https://www.some.domain.com/product/1/assets/favicon.ico",
+    "price"    : 35.4,
+    "tags"     : ['cheap'],
+}
 
 
 class ItemCreate(BaseModel):
@@ -26,19 +32,8 @@ class ItemCreate(BaseModel):
     class Config:
         orm_mode = True
         schema_extra = {
-            "example": {
-                "url"      : "https://www.some.domain.com/product/1",
-                "thumbnail": "https://www.some.domain.com/product/1/assets/favicon.ico",
-                "price"    : 35.4,
-                "tags"     : ['cheap'],
-            }
+            "example": item_schema_example
         }
-
-    # @validator('*',pre=True)
-    # def validate(cls, v):
-    #     if "previous_id" in v.keys() and "next_id" in v.keys():
-    #         raise ValueError(f"Only one should be set {v}")
-    #     return v
 
 
 class ItemPatch(BaseModel):
@@ -55,17 +50,8 @@ class ItemPatch(BaseModel):
     class Config:
         orm_mode = True
         schema_extra = {
-            "example": {
-                "url"      : "https://www.some.domain.com/product/1",
-                "thumbnail": "https://www.some.domain.com/product/1/assets/favicon.ico",
-                "price"    : 35.4,
-                "tags"     : ['cheap'],
-            }
+            "example": item_schema_example
         }
-
-
-class ItemDelete(BaseModel):
-    id: int
 
 
 class ItemOutWithTagsSerialized(ItemOut):
