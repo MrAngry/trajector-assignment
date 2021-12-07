@@ -1,0 +1,3 @@
+/app/.pytest_cache/
+/app/tests/.pytest_cache/
+/app/.coverage
