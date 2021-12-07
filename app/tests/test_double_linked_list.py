@@ -1,5 +1,4 @@
 import pytest
-from tortoise.contrib.test import TestCase
 
 from main import app
 from models.item import Item
@@ -138,3 +137,5 @@ async def test_filtering_by_tags_and_favorite(client):
     items = response.json()
     assert 1 == len(items)
     assert True == items[0]['is_favorite']
+
+
